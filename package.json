@@ -1,0 +1,19 @@
+{
+  "name": "passport-auth",
+  "version": "1.0.0",
+  "description": "test auth with passport and OAuth2",
+  "main": "app.js",
+  "scripts": {
+    "test": "ava"
+  },
+  "keywords": [
+    "auth",
+    "node",
+    "passport",
+    "oAuth2",
+    "express",
+    "mongoose"
+  ],
+  "author": "Dr",
+  "license": "ISC"
+}
