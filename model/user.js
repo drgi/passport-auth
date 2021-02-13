@@ -1,8 +1,11 @@
 const mongoose = require('mongoose')
 const schema = {
     login: String,
-    passport: String,
-    tokens: Array
+    password: String,
+    tokens: {
+        type: Array,
+        default: []
+    }
 }
 
 const userSchema = new mongoose.Schema(schema)
