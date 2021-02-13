@@ -11,9 +11,19 @@ const authRoute = require('./router/auth');
 //Db mongo
 require('./db')
 
+//Passport
+const passport = require('passport');
+const {initPassport} = require('./auth')
+initPassport(app)
+
 function createApp() {
-    app.use('/user', userRoute)
+    app.use(express.json())
+    // app.use(passport.initialize());
+    // app.use(passport.session());
     app.use('/auth', authRoute)
+    app.use('/', express.static('public'))
+    app.use('/user', userRoute)
+    
     return app
 }
 if (!module.parent) {
