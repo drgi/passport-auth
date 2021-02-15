@@ -28,7 +28,7 @@ test.after('clean DB', async t => {
 //Register tests
 test.serial('Register new user with valid data', async t => {
     const validRegRes = await app
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({login: 'newuser', password: 'newuser'})
 
     t.is(validRegRes.status, 201)
@@ -40,7 +40,7 @@ test.serial('Register new user with valid data', async t => {
 
 test.serial('Register new user with already register login', async t => {
     const invalidRegRes = await app
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({login: 'user', password: 'pass'})
     t.is(invalidRegRes.status, 400)
     
@@ -48,7 +48,7 @@ test.serial('Register new user with already register login', async t => {
 
 test.serial('Register new user with invalid data', async t => {
     const invalidRegRes = await app
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send({login: '', password: ''})
     t.is(invalidRegRes.status, 204)
         
@@ -57,43 +57,43 @@ test.serial('Register new user with invalid data', async t => {
 // Login tests
 
 test.serial('Login with valid credential', async t => {
-    const res = await app.post('/auth/login').send({login: 'tokentest-user', password: 'tokentest-user'})
+    const res = await app.post('/api/auth/login').send({login: 'tokentest-user', password: 'tokentest-user'})
     t.is(res.status, 200)
     t.truthy(typeof res.body.token === 'string')
     t.truthy(typeof res.body.refreshToken === 'string')
 })
 test.serial('Login with invalid credential', async t => {
-    const res = await app.post('/auth/login').send({login: '', password: 'user'})
+    const res = await app.post('/api/auth/login').send({login: '', password: 'user'})
     t.is(res.status, 400)
     t.truthy(typeof res.body.error === 'string')
 })
 test.serial('Login but user not registred, no found in DB', async t => {
-    const res = await app.post('/auth/login').send({login: 'nouser', password: 'user'})
+    const res = await app.post('/api/auth/login').send({login: 'nouser', password: 'user'})
     t.is(res.status, 404)
     t.truthy(typeof res.body.error === 'string')
 })
 test.serial('Login with invalid password', async t => {
-    const res = await app.post('/auth/login').send({login: 'user', password: 'INVALID'})
+    const res = await app.post('/api/auth/login').send({login: 'user', password: 'INVALID'})
     t.is(res.status, 401)
     t.truthy(typeof res.body.error === 'string')
 })
 //Refresh token test
 test.serial('Get new access Token with valid Refresh Token and Refresh Token work only once', async t => {
     const refreshToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDI1OTJjNTY3NTUzOTBhNTQ1NTA2ZjMiLCJpYXQiOjE2MTMwNzUxNDJ9.lpoFTtA7Z807x1zLJBYzXhZoPhrTVHANSUVyrPLhYNo'
-    const res = await app.post('/auth/refreshtoken').send({refreshToken})
+    const res = await app.post('/api/auth/refreshtoken').send({refreshToken})
     t.is(res.status, 200)
     t.truthy(typeof res.body.token === 'string');
     t.truthy(typeof res.body.refreshToken === 'string');
-    const secondRes = await app.post('/auth/refreshtoken').send({refreshToken})
+    const secondRes = await app.post('/api/auth/refreshtoken').send({refreshToken})
     t.is(secondRes.status, 404)
     t.is(secondRes.body.error, 'Invalid refreshToken')    
 })
 test.serial('Get new access Token with invalid field(no refreshToken)', async t => {
     const refreshToken = ''
-    const res = await app.post('/auth/refreshtoken').send({refreshToken})
+    const res = await app.post('/api/auth/refreshtoken').send({refreshToken})
     t.is(res.status, 400)
     t.is(res.body.error, 'Invalid fields')
-    const res2 = await app.post('/auth/refreshtoken').send({NOrefreshToken: ''})
+    const res2 = await app.post('/api/auth/refreshtoken').send({NOrefreshToken: ''})
     t.is(res2.status, 400)
     t.is(res2.body.error, 'Invalid fields')
 })
@@ -101,32 +101,32 @@ test.serial('Get new access Token with invalid field(no refreshToken)', async t 
 test.serial('Refresh Token become invalid after Logout', async t => {
     const accessToken = `Bearer ${issueToken({_id: '602592c56755390a545506f3'}, {expiresIn: '1h'})}`
     const logoutRes = await app
-        .post('/auth/logout')
+        .post('/api/auth/logout')
         .set('Authorization', accessToken)
         .send({refreshToken: 'TEST_LOGOUT_RESRESH_TOKEN'})
     t.is(logoutRes.status, 200)
 
     const refreshToken = 'TEST_LOGOUT_RESRESH_TOKEN'
-    const res = await app.post('/auth/refreshtoken').send({refreshToken})
+    const res = await app.post('/api/auth/refreshtoken').send({refreshToken})
     t.is(res.status, 404)
 })
 test.serial('Logout with invalid accessToken', async t => {
     const accessToken = `Bearer ${issueToken({login: 'validuser'}, {expiresIn: '1ms'})}`
-    const logoutRes = await app.post('/auth/logout').set('Authorization', accessToken)
+    const logoutRes = await app.post('/api/auth/logout').set('Authorization', accessToken)
     t.is(logoutRes.status, 401)
 })
 //LogoutAll tests
 test.serial('Logout from all, delete all Refresh Tokens', async t => {
     const accessToken = `Bearer ${issueToken({_id: '602592c56755390a545506f3'}, {expiresIn: '1h'})}`
-    const logoutAllres = await app.post('/auth/logoutall').set('Authorization', accessToken)
+    const logoutAllres = await app.post('/api/auth/logoutall').set('Authorization', accessToken)
     t.is(logoutAllres.status, 200)
 
     const refreshToken = 'TEST_ALLLOGOUT_RESRESH_TOKEN'
-    const res = await app.post('/auth/refreshtoken').send({refreshToken})
+    const res = await app.post('/api/auth/refreshtoken').send({refreshToken})
     t.is(res.status, 404)
 
     const refreshToken2 = 'TEST_ALLLOGOUT_RESRESH_TOKEN2'
-    const res2 = await app.post('/auth/refreshtoken').send({refreshToken: refreshToken2})
+    const res2 = await app.post('/api/auth/refreshtoken').send({refreshToken: refreshToken2})
     t.is(res2.status, 404)
 })
 

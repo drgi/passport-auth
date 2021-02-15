@@ -10,8 +10,12 @@ router.use((req, res, next) => {
 
 router.get('/:user', 
 passport.authenticate('jwt', {failureFlash:false, session: false}), (req, res) => {
-    
-    res.status(200).send('Hello')
+    const refreshToken = req.cookies['refreshToken']
+    const { login, _id } = req.user
+    if (!login || !_id) {
+        return res.status(404).json({error: 'User not found'})
+    }
+    res.status(200).json({login, _id})
 })
 // router.get('/all', async (req, res) => {
 //     const users = await getAllUsers()

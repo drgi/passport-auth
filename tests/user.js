@@ -13,7 +13,7 @@ const app2 = agent(createApp())
 //     await addUsersForTest(usersForTest)
 // })
 
-// test('User test api', async t => {
+// test('User test /api', async t => {
     
 //     const res = await app.get('/user')
 //     t.is(res.status, 200)
@@ -25,12 +25,12 @@ const app2 = agent(createApp())
 // })
 test('Get user by name with valid Token', async t => {
     const authHeader = `Bearer ${issueToken({_id: '602592c56755390a545506f3'}, {expiresIn: '1h'})}`
-    const res = await app2.get('/user/validuser').set('Authorization', authHeader)
+    const res = await app2.get('/api/user/validuser').set('Authorization', authHeader)
     t.is(res.status, 200)
 })
 test('Get user by name with invalid Token', async t => {
     const authHeader = `Bearer ${issueToken({_id: '602592c56755390a545506f3'}, {expiresIn: '1ms'})}`
-    const res = await app2.get('/user/validuser').set('Authorization', authHeader)
+    const res = await app2.get('/api/user/validuser').set('Authorization', authHeader)
     console.log('invalid token:', res.text)
     t.is(res.status, 401)
 })

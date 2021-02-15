@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const { register, getUserBy } = require('../controllers/user')
 const { createTokens, comparePass, findRefToken, removeRefreshToken } = require('../controllers/auth')
+const config = require('../config/config')
 const passport = require('passport')
 
 router.use((req, res, next) => {
@@ -31,6 +32,7 @@ router.post('/register', async (req, res) => {
 
 })
  router.post('/login', async (req, res) => {
+     console.log(req.body)
     const {login, password} = req.body
     if (!login || !password) {
         return res.status(400).json({error: 'Invalid fields'})
@@ -44,10 +46,18 @@ router.post('/register', async (req, res) => {
     }
     const {token, refreshToken} = await createTokens(user._id)
     const resp = {_id: user._id, login: user.login, token, refreshToken}
+    //Set cookie with refresh Token
+    res.cookie('refreshToken', refreshToken, {
+        maxAge: 99999999,
+        httpOnly: true,
+        secure: false
+    })
     return res.status(200).json(resp)
  })
 router.post('/refreshtoken', async (req, res) => {
-    const { refreshToken } = req.body
+    const refreshToken = req.cookies['refreshToken']
+    console.log(refreshToken)
+   
     if (!refreshToken) {
         return res.status(400).json({error: 'Invalid fields'})
     }
@@ -57,13 +67,21 @@ router.post('/refreshtoken', async (req, res) => {
     }
     await removeRefreshToken(refreshToken, user)
     const result = await createTokens(user._id)
-    return res.status(200).json(result)
+    res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        maxAge: 99999999
+    })
+    return res.status(200).json({token: result.token, expired: config.tokenExpires})
 })
 router.post('/logout', passport.authenticate('jwt', {failureFlash:false, session: false}), async (req, res) => {
-    const { refreshToken } = req.body
+    const refreshToken = req.cookies['refreshToken']
     const user = req.user
     if (!refreshToken) {return res.status(400).json({error: 'Invalid fields'})}
     await removeRefreshToken(refreshToken, user)
+    res.cookie('refreshToken', '', {
+        httpOnly: true,
+        expires: new Date(0)
+    })
     return res.status(200).json({message: 'Logout'})
 })
 router.post('/logoutall', passport.authenticate('jwt', {failureFlash:false, session: false}), async (req, res) => {
