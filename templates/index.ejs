@@ -17,15 +17,22 @@
           </li>
         </ul>        
       </div>
+      <span
+        :class="{'text-danger': !isAuth, 'text-success': isAuth}" 
+        class="navbar-text">
+        {{isAuth ? 'AuthOk' : 'noAuth'}}
+      </span>
+      <button class="btn btn-primary" @click="logoutAll">LogOutAll</button>
       <button class="btn btn-primary" @click="logout">LogOut</button>
     </div>
   </nav>
-  <div class="alert alert-primary" role="alert">
+  <div
+    v-if="error" 
+    class="alert alert-primary" role="alert">
     Auth error: {{error}}
   </div>
   <keep-alive>
-    <component :is="currentTabComponent" :user="user" @set-auth-data="setAuthData">
-      
+    <component :is="currentTabComponent" :user="user" @set-auth-data="setAuthData" @auth-error="errorHandler">      
     </component>
   </keep-alive>
 </div>

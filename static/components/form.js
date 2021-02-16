@@ -35,26 +35,21 @@ export default {
         login: this.login, password: this.password
       }
       try {
-        const req = await fetch('api/auth/login', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-      })
-      if (req.ok) {
-        const res = await req.json()
-        this.$emit('set-auth-data', res)
-        auth.setAccessToken(res.token)
-      }
-
-      } catch (error) {
-        console.log(error.message)
-      }
-      
-      
+        const user = await auth.login(data)
+        this.$emit('set-auth-data', user)
+      } catch (err) {
+        console.log(err.message)
+        this.$emit('auth-error', err.message)
+      }    
 
     },
     async refreshToken() {
-      console.log('refresh',await auth.refreshToken())
+      try {
+        await auth.refreshToken()
+      } catch (err) {
+        this.$emit('auth-error', err.message)
+      }
+      
       
     }
   },

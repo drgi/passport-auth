@@ -59,11 +59,11 @@ router.post('/refreshtoken', async (req, res) => {
     console.log(refreshToken)
    
     if (!refreshToken) {
-        return res.status(400).json({error: 'Invalid fields'})
+        return res.status(400).json({error: 'Invalid fields or RefreshToken not in cookie'})
     }
     const user = await findRefToken(refreshToken)    
     if (!user) {
-        return res.status(404).json({error: 'Invalid refreshToken'})
+        return res.status(404).json({error: 'Invalid or expired RefreshToken'})
     }
     await removeRefreshToken(refreshToken, user)
     const result = await createTokens(user._id)

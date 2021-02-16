@@ -2,18 +2,56 @@ let accessToken = ''
 window.addEventListener('storage', e => {
     console.log(e.key)
 })
+function headers(jwt = '') {
+    const headers = {
+        'Content-Type': 'application/json'
+    }
+    if (jwt) {
+        headers['Authorization'] = `Bearer ${jwt}`
+    }
+    return headers
+}
 
-async function login() {
+async function login( { login, password }) {    
     try {
         const req = await fetch('api/auth/login', {
-
+            method: 'POST',
+            headers: headers(),
+            body: JSON.stringify({login, password})
         })
+        if (req.ok) {
+            const res = await req.json()
+            accessToken = res.token
+            return {_id: res._id, login: res.login}
+        } else {
+            const res = await req.json()
+            throw new Error(res.error)
+        }
     } catch (err) {
         throw err
     }
 }
 async function logout() {
-    const req = await fetch('api/auth/logout', {
+    try {
+        const req = await fetch('api/auth/logout', {
+            method: 'POST',
+            headers: headers(getAccessToken()),
+            credentials: 'include'    
+        })
+        if (req.ok) {
+            accessToken = ''
+            window.localStorage.setItem('logout', Date.now())
+        } else if (req.status === 401){
+            throw new Error(req.statusText)
+        }        
+    } catch (err) {
+        throw err
+    }
+    
+    
+}
+async function logoutAll() {
+    const req = await fetch('api/auth/logoutall', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -61,7 +99,8 @@ function setAccessToken(token) {
 
 export default {
     login,
-    logout, 
+    logout,
+    logoutAll, 
     getAccessToken, 
     setAccessToken, 
     refreshToken,

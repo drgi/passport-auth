@@ -22,27 +22,26 @@ const App = {
         currentTabChange(link) {
             console.log(link);
             if (link === 'Profile' && !auth.getAccessToken()) {
+                this.errorHandler('You not authorized')
                 return this.currentTab = 'login'
             }
             this.currentTab = link
         },
         setAuthData(payload) {
-            console.log(payload)
             Object.assign(this.user, payload)
+            this.isAuth = true
         },
-        async logout() {
-            await auth.logout()
-            console.log('getToken', auth.getAccessToken())
-            this.currentTab = 'login'
-            // try {
-            //     const req = await fetch('api/auth/logout', {
-            //         methods: 'POST',
-            //         headers: {'Content-Type': 'application/json'},
-            //         credentials: 'include'
-            //     })
-            // } catch (err) {
-            //     console.log(err.message)
-            // }
+        async logout() {            
+            try {
+                await auth.logout()
+                console.log('getToken', auth.getAccessToken())
+                this.currentTab = 'login'
+            } catch (err) {
+                this.errorHandler(err.message)
+            }
+        },   
+        async logoutAll() {
+            await auth.logoutAll()
         },
         async getSecretUserData() {
             // Запрос на сервер по токену 
@@ -55,6 +54,10 @@ const App = {
             if (req.ok) {
                 Object.assign(this.user, await req.json())
             }
+        },
+        errorHandler(errMessage) {
+            console.log('errMessage', errMessage)
+            this.error = errMessage
         }
     },
     computed: {
@@ -74,7 +77,7 @@ const App = {
             }
         } catch(err) {
             console.log(err.message)
-            this.error = err.message
+            this.errorHandler(err.message)
             
         }
         
